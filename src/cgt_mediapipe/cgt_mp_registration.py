@@ -1,14 +1,20 @@
 import logging
-import bpy
-from ..cgt_core.cgt_utils import cgt_user_prefs
-from . import cgt_mp_interface, cgt_mp_preferences, cgt_mp_detection_operator, cgt_mp_properties
 
+import bpy
+
+from ..cgt_core.cgt_utils import cgt_user_prefs
+from . import (
+    cgt_mp_detection_json_operator,
+    cgt_mp_interface,
+    cgt_mp_preferences,
+    cgt_mp_properties,
+)
 
 classes = [
     cgt_mp_properties,
-    cgt_mp_detection_operator,
+    cgt_mp_detection_json_operator,
     cgt_mp_interface,
-    cgt_mp_preferences
+    cgt_mp_preferences,
 ]
 
 MP_ATTRS = {
@@ -23,20 +29,22 @@ MP_ATTRS = {
     "hand_model_complexity": 1,
     "pose_model_complexity": 1,
     "holistic_model_complexity": 1,
-    "refine_face_landmarks": False
+    "refine_face_landmarks": False,
 }
 
 
 @bpy.app.handlers.persistent
 def save_preferences(*args):
     user = bpy.context.scene.cgtinker_mediapipe  # noqa
-    cgt_user_prefs.set_prefs(**{attr: getattr(user, attr, default) for attr, default in MP_ATTRS.items()})
+    cgt_user_prefs.set_prefs(
+        **{attr: getattr(user, attr, default) for attr, default in MP_ATTRS.items()}
+    )
 
 
 @bpy.app.handlers.persistent
 def load_preferences(*args):
     stored_preferences = cgt_user_prefs.get_prefs(**MP_ATTRS)
-    user = bpy.context.scene.cgtinker_mediapipe # noqa
+    user = bpy.context.scene.cgtinker_mediapipe  # noqa
     for property_name, value in stored_preferences.items():
         if not hasattr(user, property_name):
             logging.warning(f"{property_name} - not available.")
@@ -58,4 +66,3 @@ def unregister():
         if cls is None:
             continue
         cls.unregister()
-

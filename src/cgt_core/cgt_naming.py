@@ -1,13 +1,16 @@
-import os
 import logging
+import os
 from dataclasses import dataclass
-from .cgt_utils.cgt_json import JsonData
 from pathlib import Path
+
+from .cgt_utils.cgt_json import JsonData
 
 # has to be at root
 PACKAGE = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-logging.getLogger("BlendArMocap").debug(f"{PACKAGE}, {os.path.dirname(os.path.dirname(__file__))}")
-ADDON_NAME = "BlendArMocap"
+logging.getLogger("BlendArMocap").debug(
+    f"{PACKAGE}, {os.path.dirname(os.path.dirname(__file__))}"
+)
+ADDON_NAME = "Thai Text to Sign Language Translation"
 
 
 class CGTDefaultsJson(JsonData):
@@ -26,9 +29,10 @@ cgt_defaults = CGTDefaultsJson()
 
 @dataclass(frozen=True, init=True)
 class COLLECTIONS:
-    """ TODO: Store all dataclasses as json in dicts - positions matter therefore this setup aint practical
-        todo: !!!
-        """
+    """TODO: Store all dataclasses as json in dicts - positions matter therefore this setup aint practical
+    todo: !!!
+    """
+
     drivers: str = "cgt_DRIVERS"
     hands: str = "cgt_HAND"
     face: str = "cgt_FACE"

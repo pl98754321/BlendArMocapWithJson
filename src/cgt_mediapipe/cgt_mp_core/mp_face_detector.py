@@ -1,12 +1,19 @@
-import mediapipe as mp
-from .mp_detector_node import DetectorNode
 from typing import Mapping, Tuple
+
+import mediapipe as mp
 from mediapipe.python.solutions import face_mesh_connections
 from mediapipe.python.solutions.drawing_utils import DrawingSpec
 
+from .mp_detector_node import DetectorNode
+
 
 class FaceDetector(DetectorNode):
-    def __init__(self, stream, refine_face_landmarks: bool = False, min_detection_confidence: float = 0.7):
+    def __init__(
+        self,
+        stream,
+        refine_face_landmarks: bool = False,
+        min_detection_confidence: float = 0.7,
+    ):
         DetectorNode.__init__(self, stream)
         self.solution = mp.solutions.face_mesh
         self.refine_face_landmarks = refine_face_landmarks
@@ -14,17 +21,22 @@ class FaceDetector(DetectorNode):
 
     def update(self, data, frame):
         with self.solution.FaceMesh(
-                max_num_faces=1,
-                static_image_mode=False,
-                refine_landmarks=self.refine_face_landmarks,
-                min_detection_confidence=self.min_detection_confidence) as mp_lib:
+            max_num_faces=1,
+            static_image_mode=False,
+            refine_landmarks=self.refine_face_landmarks,
+            min_detection_confidence=self.min_detection_confidence,
+        ) as mp_lib:
             return self.exec_detection(mp_lib), frame
 
     def empty_data(self):
         return [[[]]]
 
     def detected_data(self, mp_res):
-        return [self.cvt2landmark_array(landmark) for landmark in mp_res.multi_face_landmarks]
+        # list of list of [idx,[x,y,z]]
+        return [
+            self.cvt2landmark_array(landmark)
+            for landmark in mp_res.multi_face_landmarks
+        ]
 
     def contains_features(self, mp_res):
         if not mp_res.multi_face_landmarks:
@@ -39,18 +51,24 @@ class FaceDetector(DetectorNode):
         _WHITE = (224, 224, 224)
 
         _FACEMESH_CONTOURS_CONNECTION_STYLE = {
-            face_mesh_connections.FACEMESH_LIPS:
-                DrawingSpec(color=_WHITE, thickness=_THICKNESS_CONTOURS),
-            face_mesh_connections.FACEMESH_LEFT_EYE:
-                DrawingSpec(color=_WHITE, thickness=_THICKNESS_CONTOURS),
-            face_mesh_connections.FACEMESH_LEFT_EYEBROW:
-                DrawingSpec(color=_WHITE, thickness=_THICKNESS_CONTOURS),
-            face_mesh_connections.FACEMESH_RIGHT_EYE:
-                DrawingSpec(color=_WHITE, thickness=_THICKNESS_CONTOURS),
-            face_mesh_connections.FACEMESH_RIGHT_EYEBROW:
-                DrawingSpec(color=_WHITE, thickness=_THICKNESS_CONTOURS),
-            face_mesh_connections.FACEMESH_FACE_OVAL:
-                DrawingSpec(color=_WHITE, thickness=_THICKNESS_CONTOURS),
+            face_mesh_connections.FACEMESH_LIPS: DrawingSpec(
+                color=_WHITE, thickness=_THICKNESS_CONTOURS
+            ),
+            face_mesh_connections.FACEMESH_LEFT_EYE: DrawingSpec(
+                color=_WHITE, thickness=_THICKNESS_CONTOURS
+            ),
+            face_mesh_connections.FACEMESH_LEFT_EYEBROW: DrawingSpec(
+                color=_WHITE, thickness=_THICKNESS_CONTOURS
+            ),
+            face_mesh_connections.FACEMESH_RIGHT_EYE: DrawingSpec(
+                color=_WHITE, thickness=_THICKNESS_CONTOURS
+            ),
+            face_mesh_connections.FACEMESH_RIGHT_EYEBROW: DrawingSpec(
+                color=_WHITE, thickness=_THICKNESS_CONTOURS
+            ),
+            face_mesh_connections.FACEMESH_FACE_OVAL: DrawingSpec(
+                color=_WHITE, thickness=_THICKNESS_CONTOURS
+            ),
         }
 
         face_mesh_contours_connection_style = {}
@@ -68,19 +86,21 @@ class FaceDetector(DetectorNode):
                 connections=self.solution.FACEMESH_CONTOURS,
                 connection_drawing_spec=self.get_custom_face_mesh_contours_style(),
                 # connection_drawing_spec=self.drawing_style.get_default_face_mesh_contours_style(),
-                landmark_drawing_spec=None)
+                landmark_drawing_spec=None,
+            )
 
-                # image=self.stream.frame,
-                # landmark_list=face_landmarks,
-                # connections=self.solution.FACEMESH_IRISES,
-                # landmark_drawing_spec=None,
-                # connection_drawing_spec=self.drawing_style.get_default_face_mesh_iris_connections_style())
+            # image=self.stream.frame,
+            # landmark_list=face_landmarks,
+            # connections=self.solution.FACEMESH_IRISES,
+            # landmark_drawing_spec=None,
+            # connection_drawing_spec=self.drawing_style.get_default_face_mesh_iris_connections_style())
 
 
 # region manual tests
-if __name__ == '__main__':
-    from . import cv_stream
+if __name__ == "__main__":
     from ...cgt_core.cgt_calculators_nodes import mp_calc_face_rot
+    from . import cv_stream
+
     detector = FaceDetector(cv_stream.Stream(0))
     calc = mp_calc_face_rot.FaceRotationCalculator()
     frame = 0
